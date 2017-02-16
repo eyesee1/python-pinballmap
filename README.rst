@@ -17,13 +17,11 @@ Installation
 
 .. code:: bash
 
-    $ pip install python-pinballmap
+    $ pip install pinballmap
 
 
 Quick Start
 -----------
-
-
 
 .. code:: python
 

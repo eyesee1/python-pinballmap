@@ -5,8 +5,12 @@ Python client for `Pinball Map API`_.
 
 Special thanks to `Logan Arcade`_ in Chicago for supporting development of this project.
 
+Full documentation is at `Read the Docs/`_
+
 .. _Pinball Map API: http://pinballmap.com/
 .. _Logan Arcade: https://loganarcade.com/
+.. _Read the Docs/: http://python-pinballmap.rtfd.io/
+
 
 Installation
 ------------

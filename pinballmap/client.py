@@ -348,9 +348,22 @@ class PinballMapClient:
         :return: dict of count of machines added, removed, or ignored
         """
         change_data = self.compare_location(machine_ids)
+        errors = {}
+        added = []
+        removed = []
         for machine_id in change_data['add']:
-            self.add_machine(machine_id)
+            try:
+                self.add_machine(machine_id)
+            except Exception as exc:
+                errors[machine_id] = "Failed to add: {}".format(exc)
+                continue
+            added.append(machine_id)
         for machine_id in change_data['remove']:
-            self.remove_machine(machine_id)
-        return dict(added=len(change_data['add']), removed=len(change_data['remove']),
-                    ignored=len(change_data['ignore']))
+            try:
+                self.remove_machine(machine_id)
+            except Exception as exc:
+                errors[machine_id] = "Failed to remove: {}".format(exc)
+                continue
+            removed.append(machine_id)
+        return dict(added=len(added), removed=len(removed), ignored=len(change_data['ignore']), errors=errors,
+                    error_count=len(errors))

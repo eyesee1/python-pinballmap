@@ -130,12 +130,12 @@ Example Django ``settings.py``
 .. code-block:: python
    :emphasize-lines: 2,3
 
-    PINBALL_MAP = {
-        'region_name': 'chicago',
-        'location_id': your_location_id,  # should be an int
-        'cache_name': 'default',  # default: 'default'
-        'cache_key_prefix': 'pmap_',  # default: 'pmap_'
-    }
+        PINBALL_MAP = {
+            'region_name': 'chicago',
+            'location_id': your_location_id,  # should be an int
+            'cache_name': 'default',  # default: 'default'
+            'cache_key_prefix': 'pmap_',  # default: 'pmap_'
+        }
 
 
 
@@ -163,6 +163,15 @@ Create ``yourapp/management/commands/update_pinball_map.py`` and use this as a s
             except Exception as err:
                 self.stderr.write(self.style.ERROR("Could not update pinball map because: {}".format(err)))
 
+
+
+Changes
+=======
+
+0.2.0
+-----
+
+* made syncing more resilient by allowing change requests to fail, and recording and returning a list of the errors. This allows the rest of a sync operation to continue even if there are errors on a specific add or remove operation.
 
 
 Roadmap

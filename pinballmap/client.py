@@ -189,7 +189,7 @@ class PinballMapClient:
         Finds likely name matches from the Pinball Map database and sorts results by a match quality score.
 
         :param query_string: name of the game
-        :param min_score: minimum quality score for matches. 2 seems to be the sweet spot.
+        :param min_score: minimum quality score for matches. Our default of 2 seems to be the sweet spot.
         :param include_score: whether to include the match quality scores. Default = ``False``.
         :return: matches
         """

@@ -19,8 +19,6 @@ Installation
 Quick Start
 -----------
 
-
-
 .. code:: python
 
     >>> from pinballmap import PinballMapClient
@@ -128,14 +126,16 @@ Example Django ``settings.py``
 ------------------------------
 
 .. code-block:: python
-   :emphasize-lines: 2,3
+   :emphasize-lines: 4,5
 
-        PINBALL_MAP = {
-            'region_name': 'chicago',
-            'location_id': your_location_id,  # should be an int
-            'cache_name': 'default',  # default: 'default'
-            'cache_key_prefix': 'pmap_',  # default: 'pmap_'
-        }
+    PINBALL_MAP = {
+        'region_name': 'chicago',
+        'location_id': your_location_id,  # should be an int
+        'user_email': '...', # your pinball map account email, needed for write operations
+        'user_token': '...', # your pinball map api token, needed for write operations
+        'cache_name': 'default',  # default: 'default'
+        'cache_key_prefix': 'pmap_',  # default: 'pmap_'
+    }
 
 
 
@@ -144,24 +144,25 @@ Example Django management command
 
 Create ``yourapp/management/commands/update_pinball_map.py`` and use this as a starting point:
 
-.. code:: python
+.. code-block:: python
+   :emphasize-lines: 11
 
-    from django.core.management.base import BaseCommand, CommandError
-    from pinballmap import PinballMapClient
-    from yourapp.somewhere import get_current_game_list
+   from django.core.management.base import BaseCommand, CommandError
+   from pinballmap import PinballMapClient
+   from yourapp.somewhere import get_current_game_list
 
 
-    class Command(BaseCommand):
-        help = 'Update the Pinball Map API. Adds/removes machines from our location.'
+   class Command(BaseCommand):
+       help = 'Update the Pinball Map API. Adds/removes machines from our location.'
 
-        def handle(self, *args, **options):
-            try:
-                games = get_current_game_list()
-                c = PinballMapConnection()
-                c.update_map([g.pinball_map_id for g in games])
-                self.stdout.write(self.style.SUCCESS("Pinball Map updated."))
-            except Exception as err:
-                self.stderr.write(self.style.ERROR("Could not update pinball map because: {}".format(err)))
+       def handle(self, *args, **options):
+           try:
+               games = get_current_game_list()  # ← your code provides a list of current IDs
+               c = PinballMapConnection()
+               c.update_map([g.pinball_map_id for g in games])
+               self.stdout.write(self.style.SUCCESS("Pinball Map updated."))
+           except Exception as err:
+               self.stderr.write(self.style.ERROR("Could not update pinball map because: {}".format(err)))
 
 
 
@@ -171,7 +172,8 @@ Changes
 0.2.0
 -----
 
-* made syncing more resilient by allowing change requests to fail, and recording and returning a list of the errors. This allows the rest of a sync operation to continue even if there are errors on a specific add or remove operation.
+* supports authentication tokens
+* uses https by default
 
 
 Roadmap
@@ -179,3 +181,4 @@ Roadmap
 
 * read/write machine condition reports
 * read/write high scores
+* make syncing more resilient by allowing change requests to fail, and recording and returning a list of the errors. This allows the rest of a sync operation to continue even if there are errors on a specific add or remove operation.

@@ -87,27 +87,35 @@ class PinballMapClient:
     If Django is installed and is in ``DEBUG`` mode, any write operations to the API will operate as a
     "dry run". This is to prevent you from accidentally updating the map with inaccurate development data.
     (You're welcome.)
-
+    
+    :param user_token: Your Pinball Map API Authorization Token, needed for all write operations.
     :param location_id: Your location_id, as found in the Pinball Map data
     :param region_name: Your region name, as found in the Pinball Map data
     :param cache: a cache object with get and set methods compatible with Django's cache
     """
 
     API_VERSION = "1.0"  # the Pinball Map API version supported
-    BASE_URL = "http://pinballmap.com/api/v1"  # no trailing slash!
+    BASE_URL = "https://pinballmap.com/api/v1"  # no trailing slash!
 
-    def __init__(self, location_id: int = None, region_name: str = "", cache: Any = None) -> None:
+    def __init__(self, user_email: str = "", user_token: str = "", location_id: int = None, region_name: str = "",
+                 cache: Any = None) -> None:
         self.cache = cache
         self.cache_name = 'default'
+        self.user_email = user_email
+        self.user_token = user_token
         self.cache_key_prefix = 'pmap_'
         self.location_id = location_id
         self.region_name = region_name
+        self.dry_run = False
         if settings:
             try:
                 self.location_id = int(settings.PINBALL_MAP['location_id'])
                 self.region_name = settings.PINBALL_MAP['region_name']
                 self.cache_name = settings.PINBALL_MAP.get('cache_name', self.cache_name)
+                self.user_email = settings.PINBALL_MAP.get('user_email', self.user_email)
+                self.user_token = settings.PINBALL_MAP.get('user_token', self.user_token)
                 self.cache_key_prefix = settings.PINBALL_MAP.get('cache_key_prefix', self.cache_key_prefix)
+                self.dry_run = True if settings.DEBUG is True else False
             except Exception as exc:
                 raise ValueError("Could not use your Django settings because: {}".format(exc))
         if caches:
@@ -119,6 +127,8 @@ class PinballMapClient:
         self.lmxs = []
         self.all_machines = []
         self.session = requests.Session()
+        if not self.user_email or not self.user_token:
+            logger.warning("Without user_email and user_token, all write operations will fail.")
 
     def get_all_machines(self) -> List[Dict]:
         """
@@ -302,10 +312,11 @@ class PinballMapClient:
             return None
         lmx_id = lmx['id']
         url = "{BASE_URL}/location_machine_xrefs/{lmx_id}.json".format(BASE_URL=self.BASE_URL, lmx_id=lmx_id)
-        if settings and settings.DEBUG is True:
+        if settings.dry_run:
             logger.warning("since Django is in DEBUG mode, I'm not going to DELETE {}".format(url))
             return None
-        r = self.session.delete(url)
+        params = {'user_email': self.user_email, 'user_token': self.user_token}
+        r = self.session.delete(url, params=params)
         if r.status_code != requests.codes.ok:
             logger.error(
                 "Failed to remove id {} at URL {} status code={}, content: {}".format(machine_id,
@@ -326,10 +337,12 @@ class PinballMapClient:
         :return: JSON result or None.
         """
         url = "{BASE_URL}/location_machine_xrefs.json".format(BASE_URL=self.BASE_URL)
-        if settings and settings.DEBUG is True:
+        if settings.dry_run:
             logger.warning("since Django is in DEBUG mode, I'm not going to POST to {}".format(url))
             return None
-        r = self.session.post(url, params=dict(location_id=self.location_id, machine_id=machine_id))
+        params = {'user_email': self.user_email, 'user_token': self.user_token, 'location_id': self.location_id,
+                  'machine_id': machine_id}
+        r = self.session.post(url, params=params)
         if r.status_code != requests.codes.ok:
             logger.warning(
                 "Failed to add id {} to Pinball Map at URL {} :: status code={}, content: {}".format(machine_id, r.url,

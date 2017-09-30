@@ -24,9 +24,9 @@ def main():
     parser.add_argument("-i", "--id-only", action='store_true', help="return only machine ids for query")
     parser.add_argument("command", choices=['search', 'machine_id', 'machine_ipdb', 'loc_machines'],
                         help="search: finds machine data by name; "
-                        "machine_id: finds machine matching id; "
-                        "machine_ipdb: finds machine by IPDB id; "
-                        "loc_machines: list machines at a location ")
+                             "machine_id: finds machine matching id; "
+                             "machine_ipdb: finds machine by IPDB id; "
+                             "loc_machines: list machines at a location ")
     parser.add_argument("value", default=None, nargs='*')
 
     args = parser.parse_args()

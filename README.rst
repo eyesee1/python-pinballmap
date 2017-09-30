@@ -181,4 +181,6 @@ Roadmap
 
 * read/write machine condition reports
 * read/write high scores
-* make syncing more resilient by allowing change requests to fail, and recording and returning a list of the errors. This allows the rest of a sync operation to continue even if there are errors on a specific add or remove operation.
+* make syncing more resilient by allowing change requests to fail, and recording and returning a list of the
+  errors. This allows the rest of a sync operation to continue even if there are errors on a specific add or
+  remove operation.

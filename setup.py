@@ -23,13 +23,13 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.1.2',
+    version='0.2.1',
 
     description='Python client for the Pinball Map API',
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/eyesee1/python-pinballmap',
+    url='https://github.com/pypa/sampleproject',
 
     # Author details
     author='Isaac Csandl',
@@ -48,7 +48,7 @@ setup(
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
-        'Topic :: Software Development :: Build Tools',
+        #'Topic :: Software Development :: Build Tools',
 
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: MIT License',

@@ -168,7 +168,7 @@ class PinballMapClient:
             if "authentication_token" in details:
                 self.authentication_token = details["authentication_token"]
         if not self.user_email or not self.authentication_token:
-            logger.warning("Without user_email and authentication_token, all write operations will fail.")
+            logger.info("Without user_email and authentication_token, all write operations will fail.")
 
     def get_all_machines(self) -> List[Dict]:
         """

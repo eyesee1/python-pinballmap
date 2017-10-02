@@ -120,7 +120,8 @@ class PinballMapClient:
     BASE_URL = "https://pinballmap.com/api/v1"  # no trailing slash!
 
     def __init__(self, user_email: str = "", authentication_token: str = "", location_id: int = None,
-                 region_name: str = "", user_password: str = "", cache: Any = None) -> None:
+                 region_name: str = "", cache: Any = None, user_password: str = "") -> None:
+        # TODO make this take **kwargs instead of so many ordered args
         self.cache = cache
         self.cache_name = 'default'
         self.user_email = user_email
@@ -418,7 +419,16 @@ class PinballMapClient:
         return dict(added=len(added), removed=len(removed), ignored=len(change_data['ignore']), errors=errors,
                     error_count=len(errors))
 
-    def signup_user(self, username: str, email: str, password: str, confirm_password: str, update_self: bool = True) -> dict:
+    def _update_self(self, data):
+        if "errors" in data:
+            return
+        if "user" not in data:
+            return
+        user = data["user"]
+        self.authentication_token = user["authentication_token"]
+        self.user_email = user["email"]
+
+    def signup_user(self, username: str, email: str, password: str, update_self: bool = True) -> dict:
         """
         Creates a user account. Note: This is an easy way to get a token to use later.
         If login is successful, optionally set the token for this client.
@@ -447,13 +457,10 @@ class PinballMapClient:
         :param username: the username
         :param email: user's email address
         :param password: the password
-        :param confirm_password: password, again
         :param update_self: whether to update this client instance's authentication_token, default is True
         :return: result of auth_details request as dict
         """
-        if not password == confirm_password:
-            raise ValueError("password and confirmation must match")
-        params = dict(username=username, email=email, password=password, confirm_password=confirm_password)
+        params = dict(username=username, email=email, password=password, confirm_password=password)
         url = "{BASE_URL}/users/signup.json".format(BASE_URL=self.BASE_URL)
         r = self.session.post(url, params=params)
         if r.status_code != requests.codes.ok:
@@ -463,10 +470,8 @@ class PinballMapClient:
         result = r.json()
         if "errors" in result:
             logger.error("Failed to create Pinball Map API account for {}: {}".format(username, str(result["errors"])))
-        if update_self and "authentication_token" in result:
-            self.authentication_token = result['authentication_token']
-        if update_self and "email" in result:
-            self.user_email = result["email"]
+        if update_self:
+            self._update_self(result)
         return result
 
     def auth_details(self, username: str = None, password: str = None, update_self: bool = True) -> dict:
@@ -514,8 +519,6 @@ class PinballMapClient:
         if "errors" in result:
             logger.error("username {} failed to authenticate to Pinball Map API".format(username))
             raise PinballMapAuthenticationFailure(str(result["errors"]))
-        if update_self and "authentication_token" in result:
-            self.authentication_token = result['authentication_token']
-        if update_self and "email" in result:
-            self.user_email = result["email"]
+        if update_self:
+            self._update_self(result)
         return result

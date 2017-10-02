@@ -3,9 +3,9 @@ Pinball Map API Client
 
 Python client for `Pinball Map API`_.
 
-Special thanks to `Logan Arcade`_ in Chicago for supporting development of this project.
+Special thanks to `Logan Arcade`_ in Chicago, IL for supporting development of this project.
 
-.. _Pinball Map API: http://pinballmap.com/
+.. _Pinball Map API: http://pinballmap.com/api/v1/docs
 .. _Logan Arcade: https://loganarcade.com/
 
 Current version: 0.1.2
@@ -144,7 +144,7 @@ Example Django ``settings.py``
 Example Django management command
 ---------------------------------
 
-Create ``yourapp/management/commands/update_pinball_map.py`` and use this as a starting point:
+Create yourapp/management/commands/update_pinball_map.py and use this as a starting point:
 
 .. code-block:: python
    :emphasize-lines: 11
@@ -168,8 +168,8 @@ Create ``yourapp/management/commands/update_pinball_map.py`` and use this as a s
 
 
 
-Changes
-=======
+Change Log
+===========
 
 0.2.0
 -----
@@ -178,11 +178,17 @@ Changes
 * uses https by default
 
 
+0.1.2
+-----
+* initial release
+
+
 Roadmap
 =======
 
 * read/write machine condition reports
 * read/write high scores
 * make syncing more resilient by allowing change requests to fail, and recording and returning a list of the
-  errors. This allows the rest of a sync operation to continue even if there are errors on a specific add or
-  remove operation.
+  errors. This would allow the rest of a sync operation to continue even if there are errors on a specific add
+  or remove operation.
+* update command line interface to support signup and getting auth details

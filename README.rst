@@ -54,6 +54,7 @@ Limited functionality at this point, but it does a few things.
 
     >>> pinballmap --help
     usage: pinballmap [-h] [-l LOCATION_ID] [-r REGION_NAME] [-i]
+                      [-t AUTHENTICATION_TOKEN] [-e USER_EMAIL]
                       {search,machine_id,machine_ipdb,loc_machines}
                       [value [value ...]]
 
@@ -72,6 +73,11 @@ Limited functionality at this point, but it does a few things.
       -r REGION_NAME, --region REGION_NAME
                             region name (e.g., chicago)
       -i, --id-only         return only machine ids for query
+      -t AUTHENTICATION_TOKEN, --token AUTHENTICATION_TOKEN
+                            API authentication token (needed for all write
+                            operations)
+      -e USER_EMAIL, --email USER_EMAIL
+                            User email address (needed for all write operations)
 
     Happy flipping!
 
@@ -86,37 +92,33 @@ Limited functionality at this point, but it does a few things.
     >>> pinballmap --location 4495 loc_machines
       id  name                            manufacturer      year    ipdb_id
     ----  ------------------------------  --------------  ------  ---------
+    2773  Aerosmith (LE)                  Stern             2017
+     643  Attack from Mars                Bally             1995       3781
     2728  Batman 66 (LE)                  Stern             2016
-     655  Black Knight 2000               Williams          1989        311
-     738  Dr. Dude                        Bally             1990        737
      656  Elvira and the Party Monsters   Bally             1989        782
      852  Galaxy                          Stern             1980        980
     2442  Game of Thrones (LE)            Stern             2015
     2571  Ghostbusters (LE)               Stern             2016
-    1195  Hercules                        Atari             1979       1155
-    2353  Kiss (Stern)                                      2015       6265
+     695  Junk Yard                       Williams          1996       4014
+    2353  Kiss                            Stern             2015       6265
+    2306  Medieval Madness (Remake)       Planetary         2015
+    1606  Metallica (Premium)             Stern             2013       5478
      641  Monster Bash                    Williams          1998       4441
-     744  Mousin' Around!                 Bally             1989       1635
-    2532  Mustang (Premium)               Stern             2014
-     723  PIN-BOT                         Williams          1986       1796
-    2726  Pabst Can Crusher               Stern             2016
+     675  No Fear: Dangerous Sports       Williams          1995       2852
      677  Radical!                        Bally             1990       1904
-     678  Revenge from Mars               Bally             1999       4446
-     692  Ripley's Believe It or Not!     Stern             2003       4917
-    1276  Shaq Attaq                      Gottlieb          1995       2874
+     916  Robocop                         Data East         1989       1976
     2165  Star Trek (Pro)                 Stern             2013       6044
      684  Star Trek: The Next Generation  Williams          1993       2357
      694  Star Wars                       Data East         1992       2358
+    2844  Star Wars (Premium)             Stern             2017
     1118  TRON: Legacy                    Stern             2011       5682
      779  Taxi                            Williams          1988       2505
      687  The Addams Family               Bally             1992         20
     2203  The Walking Dead (Pro)          Stern             2014       6155
-     689  White Water                     Williams          1993       2768
-    2324  Whoa Nellie! Big Juicy Melons   Stern             2015       6252
     2277  Wrestlemania                    Stern             2015
 
     >>> pinballmap --location 4495 --id-only loc_machines
-    2728,655,738,656,852,2442,2571,1195,2353,641,744,2532,723,2726,677,678,692,1276,2165,684,694,1118,779,687,2203,689,2324,2277
+    2773,643,2728,656,852,2442,2571,695,2353,2306,1606,641,675,677,916,2165,684,694,2844,1118,779,687,2203,2277
 
     >>> pinballmap machine_id 2571
       id  name               manufacturer      year  ipdb_id
@@ -134,6 +136,7 @@ Example Django ``settings.py``
         'region_name': 'chicago',
         'location_id': your_location_id,  # should be an int
         'user_email': '...', # your pinball map account email, needed for write operations
+        'user_password': '...', # your pinball map password, needed for write operations (not needed with token)
         'user_token': '...', # your pinball map api token, needed for write operations
         'cache_name': 'default',  # default: 'default'
         'cache_key_prefix': 'pmap_',  # default: 'pmap_'
@@ -160,7 +163,8 @@ Create yourapp/management/commands/update_pinball_map.py and use this as a start
        def handle(self, *args, **options):
            try:
                games = get_current_game_list()  # ← your code provides a list of current IDs
-               c = PinballMapConnection()
+               # no args needed if you used Django settings as shown above:
+               c = PinballMapClient()
                c.update_map([g.pinball_map_id for g in games])
                self.stdout.write(self.style.SUCCESS("Pinball Map updated."))
            except Exception as err:
@@ -169,14 +173,15 @@ Create yourapp/management/commands/update_pinball_map.py and use this as a start
 
 
 Change Log
-===========
+==========
 
 0.2.0
 -----
 
+* breaking change: PinballMapClient now takes keyword arguments, old ordered argument syntax will no longer work
 * supports authentication tokens
 * uses https by default
-
+* fix dry-run bug
 
 0.1.2
 -----
@@ -186,9 +191,8 @@ Change Log
 Roadmap
 =======
 
-* read/write machine condition reports
-* read/write high scores
 * make syncing more resilient by allowing change requests to fail, and recording and returning a list of the
   errors. This would allow the rest of a sync operation to continue even if there are errors on a specific add
   or remove operation.
 * update command line interface to support signup and getting auth details
+* eventually support all API actions

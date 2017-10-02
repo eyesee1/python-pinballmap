@@ -8,6 +8,8 @@ Special thanks to `Logan Arcade`_ in Chicago for supporting development of this 
 .. _Pinball Map API: http://pinballmap.com/
 .. _Logan Arcade: https://loganarcade.com/
 
+Current version: 0.1.2
+
 Installation
 ------------
 

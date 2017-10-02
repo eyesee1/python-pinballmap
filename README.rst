@@ -25,7 +25,7 @@ Quick Start
 
     >>> from pinballmap import PinballMapClient
 
-    >>> c = PinballMapClient(location_id=0, region_name="chicago")
+    >>> c = PinballMapClient(location_id=0, region_name="chicago", authentication_token="...", user_email="email@example.com")
 
     # Sync your list of machines by providing a complete list of current Pinball Map machine_ids.
     # e.g.:
@@ -129,15 +129,18 @@ Limited functionality at this point, but it does a few things.
 Example Django ``settings.py``
 ------------------------------
 
+NOTE: Django settings, if present, will take precedence over arguments to PinballMapClient(...)
+
 .. code-block:: python
    :emphasize-lines: 4,5
 
     PINBALL_MAP = {
         'region_name': 'chicago',
         'location_id': your_location_id,  # should be an int
+        # email and token are required for all write operations
         'user_email': '...', # your pinball map account email, needed for write operations
         'user_password': '...', # your pinball map password, needed for write operations (not needed with token)
-        'user_token': '...', # your pinball map api token, needed for write operations
+        'authentication_token': '...', # your pinball map api token, needed for write operations
         'cache_name': 'default',  # default: 'default'
         'cache_key_prefix': 'pmap_',  # default: 'pmap_'
     }
@@ -179,8 +182,8 @@ Change Log
 -----
 
 * breaking change: PinballMapClient now takes keyword arguments, old ordered argument syntax will no longer work
-* supports authentication tokens
-* uses https by default
+* now supports authentication tokens, signup process, getting auth details
+* now uses https by default
 * fix dry-run bug
 
 0.1.2
@@ -191,8 +194,5 @@ Change Log
 Roadmap
 =======
 
-* make syncing more resilient by allowing change requests to fail, and recording and returning a list of the
-  errors. This would allow the rest of a sync operation to continue even if there are errors on a specific add
-  or remove operation.
 * update command line interface to support signup and getting auth details
-* eventually support all API actions
+* eventually support all API actions, such as scores, machine conditions, etc.

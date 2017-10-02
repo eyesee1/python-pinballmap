@@ -87,8 +87,15 @@ def requires_authorization(f):
     @wraps(f)
     def wrapper(self, *args, **kwargs):
         if not self.authentication_token and self.user_email:
-            raise TokenRequiredException("Pinball Map authentication_token required for this operation.")
-        return f(*args, **kwargs)
+            if self.user_email and self.user_password:
+                # we have credentials, why not try them?
+                try:
+                    self.auth_details(self.user_email, self.user_password, update_self=True)
+                    return f(self, *args, **kwargs)
+                except PinballMapAuthenticationFailure:
+                    pass
+            raise TokenRequiredException("Pinball Map authentication_token and user_email required for this operation.")
+        return f(self, *args, **kwargs)
 
     return wrapper
 
@@ -98,7 +105,7 @@ class PinballMapClient:
     Creates a ``PinballMapClient``, optionally locked to a specific location_id and region name.
     It will use Django's default cache if installed and available.
 
-    Passed-in values are optional.
+    Passed-in values are optional. Authentication Token and email is needed for all write operations.
 
     You can use an instance to look up machines by name or id without specifying a location or region.
     Most other methods will fail without them.
@@ -111,26 +118,29 @@ class PinballMapClient:
     it's authentication_token. Sometimes username, sometimes login. Always check the docs when adding/changing code here.
     
     :param authentication_token: Your Pinball Map API Authentication Token, needed for all write operations.
+    :param user_email: map account email
+    :param user_password: map account password
     :param location_id: Your location_id, as found in the Pinball Map data
     :param region_name: Your region name, as found in the Pinball Map data
     :param cache: a cache object with get and set methods compatible with Django's cache
+    :param cache_name: Django cache name to use. Default: 'default'
+    :param cache_key_prefix: a prefix for cache keys. Default: 'pmap_'
     """
 
     API_VERSION = "1.0"  # the Pinball Map API version supported
     BASE_URL = "https://pinballmap.com/api/v1"  # no trailing slash!
 
-    def __init__(self, user_email: str = "", authentication_token: str = "", location_id: int = None,
-                 region_name: str = "", cache: Any = None, user_password: str = "") -> None:
-        # TODO make this take **kwargs instead of so many ordered args
-        self.cache = cache
-        self.cache_name = 'default'
-        self.user_email = user_email
-        self.user_password = user_password
-        self.authentication_token = authentication_token
-        self.cache_key_prefix = 'pmap_'
-        self.location_id = location_id
-        self.region_name = region_name
+    def __init__(self, **kwargs) -> None:
+        self.authentication_token = kwargs.get('authentication_token', None)
+        self.user_email = kwargs.get('user_email', None)
+        self.user_password = kwargs.get('user_password', None)
+        self.location_id = kwargs.get('location_id', None)
+        self.region_name = kwargs.get('region_name', None)
+        self.cache = kwargs.get('cache', None)
+        self.cache_name = kwargs.get('cache_name', 'default')
+        self.cache_key_prefix = kwargs.get('cache_key_prefix', 'pmap_')
         self.dry_run = False
+        # if Django is present, override with its settings
         if settings:
             try:
                 self.location_id = int(settings.PINBALL_MAP['location_id'])
@@ -142,13 +152,9 @@ class PinballMapClient:
                 self.cache_key_prefix = settings.PINBALL_MAP.get('cache_key_prefix', self.cache_key_prefix)
                 self.dry_run = True if settings.DEBUG is True else False
             except Exception as exc:
-                raise ValueError("Could not use your Django settings because: {}".format(exc))
+                raise ValueError("Could not use your Django settings for Pinball Map API because: {}".format(exc))
         if caches:
             self.cache = caches[self.cache_name]
-        if location_id:
-            self.location_id = location_id
-        if region_name:
-            self.region_name = region_name
         self.lmxs = []
         self.all_machines = []
         self.session = requests.Session()
@@ -293,6 +299,8 @@ class PinballMapClient:
         """
         if not location_id:
             location_id = self.location_id
+        if not location_id:
+            raise ValueError("Need a location id")
         r = self.session.get(
             "{base}/locations/{id}/machine_details.json".format(base=self.BASE_URL, id=location_id))
         if r.status_code != requests.codes.ok:
@@ -350,7 +358,7 @@ class PinballMapClient:
         if self.dry_run:
             logger.warning("since Django is in DEBUG mode, I'm not going to DELETE {}".format(url))
             return None
-        params = {'user_email': self.user_email, 'user_token': self.authentication_token}
+        params = {'user_email': self.user_email, 'user_token': self.authentication_token, 'id': lmx_id}
         r = self.session.delete(url, params=params)
         if r.status_code != requests.codes.ok:
             logger.error(
@@ -367,7 +375,7 @@ class PinballMapClient:
         """
         Add a machine to my location.
 
-        NOTE: If it detects that Django is in debug mode, it will not actually perform the removal.
+        NOTE: If it detects that Django is in debug mode, it will not actually perform the addition.
 
         :param machine_id:
         :return: JSON result or None.
@@ -376,9 +384,12 @@ class PinballMapClient:
         if self.dry_run:
             logger.warning("since Django is in DEBUG mode, I'm not going to POST to {}".format(url))
             return None
-        params = {'user_email': self.user_email, 'user_token': self.authentication_token,
-                  'location_id': self.location_id,
-                  'machine_id': machine_id}
+        params = dict(
+            user_email=self.user_email,
+            user_token=self.authentication_token,
+            location_id=self.location_id,
+            machine_id=machine_id,
+        )
         r = self.session.post(url, params=params)
         if r.status_code != requests.codes.ok:
             logger.warning(
@@ -430,6 +441,9 @@ class PinballMapClient:
         """
         Creates a user account. Note: This is an easy way to get a token to use later.
         If login is successful, optionally set the token for this client.
+
+        If signup fails, attempt to log in and self-update with the same credentials in case the reason for failure is simply
+        that the account already exists.
 
         NOTE: the API server will send an email with a verification link. You can't do anything further until confirmed.
 

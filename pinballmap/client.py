@@ -312,7 +312,7 @@ class PinballMapClient:
             return None
         lmx_id = lmx['id']
         url = "{BASE_URL}/location_machine_xrefs/{lmx_id}.json".format(BASE_URL=self.BASE_URL, lmx_id=lmx_id)
-        if settings.dry_run:
+        if self.dry_run:
             logger.warning("since Django is in DEBUG mode, I'm not going to DELETE {}".format(url))
             return None
         params = {'user_email': self.user_email, 'user_token': self.user_token}
@@ -337,7 +337,7 @@ class PinballMapClient:
         :return: JSON result or None.
         """
         url = "{BASE_URL}/location_machine_xrefs.json".format(BASE_URL=self.BASE_URL)
-        if settings.dry_run:
+        if self.dry_run:
             logger.warning("since Django is in DEBUG mode, I'm not going to POST to {}".format(url))
             return None
         params = {'user_email': self.user_email, 'user_token': self.user_token, 'location_id': self.location_id,

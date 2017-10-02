@@ -1,7 +1,8 @@
-from operator import itemgetter
-from typing import Dict, Tuple, List, Iterable, Union, Any
-import re
 import logging
+import re
+from functools import wraps
+from operator import itemgetter
+from typing import Any, Dict, Iterable, List, Tuple, Union
 
 import requests
 
@@ -74,6 +75,24 @@ def score_match(query_string: str, machine_data: Dict, query_words: Iterable[str
     return score
 
 
+class TokenRequiredException(Exception):
+    pass
+
+
+class PinballMapAuthenticationFailure(Exception):
+    pass
+
+
+def requires_authorization(f):
+    @wraps(f)
+    def wrapper(self, *args, **kwargs):
+        if not self.authentication_token and self.user_email:
+            raise TokenRequiredException("Pinball Map authentication_token required for this operation.")
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
 class PinballMapClient:
     """
     Creates a ``PinballMapClient``, optionally locked to a specific location_id and region name.
@@ -87,8 +106,11 @@ class PinballMapClient:
     If Django is installed and is in ``DEBUG`` mode, any write operations to the API will operate as a
     "dry run". This is to prevent you from accidentally updating the map with inaccurate development data.
     (You're welcome.)
+
+    Note: the API uses names a bit inconsistently… sometimes it's user_token, sometimes
+    it's authentication_token. Sometimes username, sometimes login. Always check the docs when adding/changing code here.
     
-    :param user_token: Your Pinball Map API Authorization Token, needed for all write operations.
+    :param authentication_token: Your Pinball Map API Authentication Token, needed for all write operations.
     :param location_id: Your location_id, as found in the Pinball Map data
     :param region_name: Your region name, as found in the Pinball Map data
     :param cache: a cache object with get and set methods compatible with Django's cache
@@ -97,12 +119,13 @@ class PinballMapClient:
     API_VERSION = "1.0"  # the Pinball Map API version supported
     BASE_URL = "https://pinballmap.com/api/v1"  # no trailing slash!
 
-    def __init__(self, user_email: str = "", user_token: str = "", location_id: int = None, region_name: str = "",
-                 cache: Any = None) -> None:
+    def __init__(self, user_email: str = "", authentication_token: str = "", location_id: int = None,
+                 region_name: str = "", user_password: str = "", cache: Any = None) -> None:
         self.cache = cache
         self.cache_name = 'default'
         self.user_email = user_email
-        self.user_token = user_token
+        self.user_password = user_password
+        self.authentication_token = authentication_token
         self.cache_key_prefix = 'pmap_'
         self.location_id = location_id
         self.region_name = region_name
@@ -113,7 +136,8 @@ class PinballMapClient:
                 self.region_name = settings.PINBALL_MAP['region_name']
                 self.cache_name = settings.PINBALL_MAP.get('cache_name', self.cache_name)
                 self.user_email = settings.PINBALL_MAP.get('user_email', self.user_email)
-                self.user_token = settings.PINBALL_MAP.get('user_token', self.user_token)
+                self.user_password = settings.PINBALL_MAP.get('user_password', self.user_password)
+                self.authentication_token = settings.PINBALL_MAP.get('authentication_token', self.authentication_token)
                 self.cache_key_prefix = settings.PINBALL_MAP.get('cache_key_prefix', self.cache_key_prefix)
                 self.dry_run = True if settings.DEBUG is True else False
             except Exception as exc:
@@ -127,8 +151,17 @@ class PinballMapClient:
         self.lmxs = []
         self.all_machines = []
         self.session = requests.Session()
-        if not self.user_email or not self.user_token:
-            logger.warning("Without user_email and user_token, all write operations will fail.")
+        if not self.authentication_token and self.user_email and self.user_password:
+            # attempt to get token from email and password, fail quietly so it's possible to try again:
+            details = dict()
+            try:
+                details = self.auth_details(self.user_email, self.user_password)
+            except Exception as msg:
+                logger.warning("PinballMapClient self-authentication failed. {}".format(msg))
+            if "authentication_token" in details:
+                self.authentication_token = details["authentication_token"]
+        if not self.user_email or not self.authentication_token:
+            logger.warning("Without user_email and authentication_token, all write operations will fail.")
 
     def get_all_machines(self) -> List[Dict]:
         """
@@ -295,6 +328,7 @@ class PinballMapClient:
                 return lmx
         return {}
 
+    @requires_authorization
     def remove_machine(self, machine_id: int) -> Union[Dict, None]:
         """
         Remove a machine from my location.
@@ -315,7 +349,7 @@ class PinballMapClient:
         if self.dry_run:
             logger.warning("since Django is in DEBUG mode, I'm not going to DELETE {}".format(url))
             return None
-        params = {'user_email': self.user_email, 'user_token': self.user_token}
+        params = {'user_email': self.user_email, 'user_token': self.authentication_token}
         r = self.session.delete(url, params=params)
         if r.status_code != requests.codes.ok:
             logger.error(
@@ -327,6 +361,7 @@ class PinballMapClient:
         result = r.json()
         return result
 
+    @requires_authorization
     def add_machine(self, machine_id: int) -> Union[Dict, None]:
         """
         Add a machine to my location.
@@ -340,7 +375,8 @@ class PinballMapClient:
         if self.dry_run:
             logger.warning("since Django is in DEBUG mode, I'm not going to POST to {}".format(url))
             return None
-        params = {'user_email': self.user_email, 'user_token': self.user_token, 'location_id': self.location_id,
+        params = {'user_email': self.user_email, 'user_token': self.authentication_token,
+                  'location_id': self.location_id,
                   'machine_id': machine_id}
         r = self.session.post(url, params=params)
         if r.status_code != requests.codes.ok:
@@ -352,6 +388,7 @@ class PinballMapClient:
         result = r.json()
         return result
 
+    @requires_authorization
     def update_map(self, machine_ids: Iterable[int]) -> Dict:
         """
         Given a complete list of machine_ids for the location, this will add and remove them as needed so that
@@ -380,3 +417,105 @@ class PinballMapClient:
             removed.append(machine_id)
         return dict(added=len(added), removed=len(removed), ignored=len(change_data['ignore']), errors=errors,
                     error_count=len(errors))
+
+    def signup_user(self, username: str, email: str, password: str, confirm_password: str, update_self: bool = True) -> dict:
+        """
+        Creates a user account. Note: This is an easy way to get a token to use later.
+        If login is successful, optionally set the token for this client.
+
+        NOTE: the API server will send an email with a verification link. You can't do anything further until confirmed.
+
+        Example responses:
+
+        .. code-block::json
+            {
+                "user": {
+                    "id": 1,
+                    "username": "my_username",
+                    "email": "email@example.com",
+                    "authentication_token": "..."
+                }
+            }
+
+
+        .. code-block: json
+            {
+                "errors": "your entered passwords do not match"
+            }
+
+
+        :param username: the username
+        :param email: user's email address
+        :param password: the password
+        :param confirm_password: password, again
+        :param update_self: whether to update this client instance's authentication_token, default is True
+        :return: result of auth_details request as dict
+        """
+        if not password == confirm_password:
+            raise ValueError("password and confirmation must match")
+        params = dict(username=username, email=email, password=password, confirm_password=confirm_password)
+        url = "{BASE_URL}/users/signup.json".format(BASE_URL=self.BASE_URL)
+        r = self.session.post(url, params=params)
+        if r.status_code != requests.codes.ok:
+            logger.warning("Failed to create Pinball Map user account for {}. status code={}, "
+                           "content={}".format(username, r.status_code, r.content))
+            r.raise_for_status()
+        result = r.json()
+        if "errors" in result:
+            logger.error("Failed to create Pinball Map API account for {}: {}".format(username, str(result["errors"])))
+        if update_self and "authentication_token" in result:
+            self.authentication_token = result['authentication_token']
+        if update_self and "email" in result:
+            self.user_email = result["email"]
+        return result
+
+    def auth_details(self, username: str = None, password: str = None, update_self: bool = True) -> dict:
+        """
+        Gets the authorization details for user.
+        If login is successful, optionally set the token for this client (default is True).
+
+        If we have settings in Django, we'll use those automatically if username and password are None.
+
+        Example responses:
+
+        .. code-block:: json
+            {
+                "errors": "User is not yet confirmed. Please follow emailed confirmation instructions."
+            }
+
+
+        .. code-block:: json
+            {
+                "user": {
+                    "id": 1,
+                    "username": "my_username",
+                    "email": "email@example.com",
+                    "authentication_token": "..."
+                }
+            }
+
+
+        :param username: the username or email address
+        :param password: the password
+        :param update_self: whether to update this client instance's authentication_token, default is True
+        :return: result of auth_details request as dict
+        """
+        if username is None and password is None:
+            raise ValueError("username and password required")
+        params = dict(login=username, password=password)
+        url = "{BASE_URL}/users/auth_details.json".format(BASE_URL=self.BASE_URL)
+        r = self.session.get(url, params=params)
+        if r.status_code != requests.codes.ok:
+            logger.warning(
+                "Failed to get Pinball Map auth details for username: {}. status code={}, "
+                "content={}".format(username, r.status_code, r.content))
+            r.raise_for_status()
+        result = r.json()
+        if "errors" in result:
+            logger.error("username {} failed to authenticate to Pinball Map API".format(username))
+            raise PinballMapAuthenticationFailure(str(result["errors"]))
+        if update_self and "authentication_token" in result:
+            self.authentication_token = result['authentication_token']
+        if update_self and "email" in result:
+            self.user_email = result["email"]
+        return result

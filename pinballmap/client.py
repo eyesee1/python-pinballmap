@@ -420,9 +420,7 @@ class PinballMapClient:
                     error_count=len(errors))
 
     def _update_self(self, data):
-        if "errors" in data:
-            return
-        if "user" not in data:
+        if "errors" in data or "user" not in data:
             return
         user = data["user"]
         self.authentication_token = user["authentication_token"]
@@ -470,6 +468,12 @@ class PinballMapClient:
         result = r.json()
         if "errors" in result:
             logger.error("Failed to create Pinball Map API account for {}: {}".format(username, str(result["errors"])))
+            # be persistent in case account exists by trying to log in anyway:
+            try:
+                return self.auth_details(email, password, update_self=update_self)
+            except PinballMapAuthenticationFailure as err:
+                logger.error("Could neither create nor log into Pinball Map account {}".format(email))
+                raise
         if update_self:
             self._update_self(result)
         return result

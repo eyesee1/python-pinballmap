@@ -22,6 +22,10 @@ def main():
     parser.add_argument("-r", "--region", help="region name (e.g., chicago)", type=str, dest='region_name',
                         default=None)
     parser.add_argument("-i", "--id-only", action='store_true', help="return only machine ids for query")
+    parser.add_argument("-t", "--token", help="API authentication token (needed for all write operations)",
+                        type=str, dest="authentication_token", default=None)
+    parser.add_argument("-e", "--email", help="User email address (needed for all write operations)", type=str,
+                        dest="user_email", default=None)
     parser.add_argument("command", choices=['search', 'machine_id', 'machine_ipdb', 'loc_machines'],
                         help="search: finds machine data by name; "
                              "machine_id: finds machine matching id; "
@@ -30,7 +34,8 @@ def main():
     parser.add_argument("value", default=None, nargs='*')
 
     args = parser.parse_args()
-    c = PinballMapClient(location_id=args.location_id, region_name=args.region_name)
+    c = PinballMapClient(location_id=args.location_id, region_name=args.region_name,
+                         authentication_token=args.authentication_token, user_email=args.user_email)
     if args.command == 'search':
         if len(args.value) == 0:
             parser.error("Query value required.")

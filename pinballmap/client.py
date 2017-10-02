@@ -15,7 +15,7 @@ except ImportError:
 
 __all__ = ['PinballMapClient', 'VERSION']
 
-VERSION = '0.2.1'
+VERSION = '0.2.2'
 logger = logging.getLogger(__name__)
 STRIP_WORDS = ('the', 'and', 'for', 'with', 'a', 'of')
 MODEL_ENDINGS = ('le', 'pro', 'premium', 'edition' 'standard')

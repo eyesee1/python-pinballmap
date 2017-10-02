@@ -10,6 +10,10 @@ Special thanks to `Logan Arcade`_ in Chicago, IL for supporting development of t
 
 Current version: 0.2.2
 
+`Source on GitHub <https://github.com/eyesee1/python-pinballmap>`_
+
+`pinballmap at Python Package Index (PyPI) <https://pypi.python.org/pypi/pinballmap/>`_
+
 Installation
 ------------
 

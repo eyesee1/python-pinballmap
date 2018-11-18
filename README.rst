@@ -14,6 +14,8 @@ Current version: 0.3.2
 
 `pinballmap at Python Package Index (PyPI) <https://pypi.python.org/pypi/pinballmap/>`_
 
+Documentation at `Read the Docs <https://python-pinballmap.readthedocs.io/en/stable/>`_
+
 Installation
 ------------
 

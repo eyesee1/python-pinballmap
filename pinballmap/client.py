@@ -1,8 +1,10 @@
+# coding: utf-8
+
 import logging
 import re
 from functools import wraps
 from operator import itemgetter
-from typing import Any, Dict, Iterable, List, Tuple, Union
+from typing import Dict, Iterable, List, Tuple, Union
 
 import requests
 
@@ -13,14 +15,14 @@ except ImportError:
     settings = None
     caches = None
 
-__all__ = ['PinballMapClient', 'VERSION']
+__all__ = ["PinballMapClient", "VERSION", "PinballMapAuthenticationFailure"]
 
-VERSION = '0.2.2'
+VERSION = "0.2.2"
 logger = logging.getLogger(__name__)
-STRIP_WORDS = ('the', 'and', 'for', 'with', 'a', 'of')
-MODEL_ENDINGS = ('le', 'pro', 'premium', 'edition' 'standard')
-punctuation_regex = re.compile(r'\W+')  # any non-alphanumeric characters
-spaces_regex = re.compile(r'\s{2,}')  # 2 or more whitespace characters
+STRIP_WORDS = ("the", "and", "for", "with", "a", "of")
+MODEL_ENDINGS = ("le", "pro", "premium", "edition" "standard")
+punctuation_regex = re.compile(r"\W+")  # any non-alphanumeric characters
+spaces_regex = re.compile(r"\s{2,}")  # 2 or more whitespace characters
 
 
 def clean_name(s: str) -> str:
@@ -32,21 +34,23 @@ def clean_name(s: str) -> str:
     :return: cleaned name
     """
     original = s
-    s = punctuation_regex.sub(' ', s).lower()
+    s = punctuation_regex.sub(" ", s).lower()
     for word in STRIP_WORDS:
         pattern = r"\b" + word + r"\b"
-        s = re.sub(pattern, ' ', s)
-    s = spaces_regex.sub(' ', s).strip()
+        s = re.sub(pattern, " ", s)
+    s = spaces_regex.sub(" ", s).strip()
     # handle unlikely case where the above leaves an empty string:
     if not s:
         # simpler cleaning that doesn't remove any words
         # I mean: whoa, what if somebody names a machine "And For The", or "The The"?
         s = original.lower()
-        s = spaces_regex.sub(' ', s).strip()
+        s = spaces_regex.sub(" ", s).strip()
     return s
 
 
-def score_match(query_string: str, machine_data: Dict, query_words: Iterable[str]) -> int:
+def score_match(
+    query_string: str, machine_data: Dict, query_words: Iterable[str]
+) -> int:
     """
     Calculates a quality score to sort search results.
 
@@ -56,11 +60,11 @@ def score_match(query_string: str, machine_data: Dict, query_words: Iterable[str
     :return:
     """
     score = 0
-    if query_string == machine_data['cleaned_name']:
+    if query_string == machine_data["cleaned_name"]:
         return 150
-    if query_string in machine_data['cleaned_name']:
+    if query_string in machine_data["cleaned_name"]:
         score += 2
-    g_words = machine_data['cleaned_name'].split()
+    g_words = machine_data["cleaned_name"].split()
     last_word = g_words[-1]
     if last_word in MODEL_ENDINGS:
         score -= 2
@@ -90,11 +94,15 @@ def requires_authorization(f):
             if self.user_email and self.user_password:
                 # we have credentials, why not try them?
                 try:
-                    self.auth_details(self.user_email, self.user_password, update_self=True)
+                    self.auth_details(
+                        self.user_email, self.user_password, update_self=True
+                    )
                     return f(self, *args, **kwargs)
                 except PinballMapAuthenticationFailure:
                     pass
-            raise TokenRequiredException("Pinball Map authentication_token and user_email required for this operation.")
+            raise TokenRequiredException(
+                "Pinball Map authentication_token and user_email required for this operation."
+            )
         return f(self, *args, **kwargs)
 
     return wrapper
@@ -131,28 +139,42 @@ class PinballMapClient:
     BASE_URL = "https://pinballmap.com/api/v1"  # no trailing slash!
 
     def __init__(self, **kwargs) -> None:
-        self.authentication_token = kwargs.get('authentication_token', None)
-        self.user_email = kwargs.get('user_email', None)
-        self.user_password = kwargs.get('user_password', None)
-        self.location_id = kwargs.get('location_id', None)
-        self.region_name = kwargs.get('region_name', None)
-        self.cache = kwargs.get('cache', None)
-        self.cache_name = kwargs.get('cache_name', 'default')
-        self.cache_key_prefix = kwargs.get('cache_key_prefix', 'pmap_')
+        self.authentication_token = kwargs.get("authentication_token", None)
+        self.user_email = kwargs.get("user_email", None)
+        self.user_password = kwargs.get("user_password", None)
+        self.location_id = kwargs.get("location_id", None)
+        self.region_name = kwargs.get("region_name", None)
+        self.cache = kwargs.get("cache", None)
+        self.cache_name = kwargs.get("cache_name", "default")
+        self.cache_key_prefix = kwargs.get("cache_key_prefix", "pmap_")
         self.dry_run = False
         # if Django is present, override with its settings
         if settings:
             try:
-                self.location_id = int(settings.PINBALL_MAP['location_id'])
-                self.region_name = settings.PINBALL_MAP['region_name']
-                self.cache_name = settings.PINBALL_MAP.get('cache_name', self.cache_name)
-                self.user_email = settings.PINBALL_MAP.get('user_email', self.user_email)
-                self.user_password = settings.PINBALL_MAP.get('user_password', self.user_password)
-                self.authentication_token = settings.PINBALL_MAP.get('authentication_token', self.authentication_token)
-                self.cache_key_prefix = settings.PINBALL_MAP.get('cache_key_prefix', self.cache_key_prefix)
+                self.location_id = int(settings.PINBALL_MAP["location_id"])
+                self.region_name = settings.PINBALL_MAP["region_name"]
+                self.cache_name = settings.PINBALL_MAP.get(
+                    "cache_name", self.cache_name
+                )
+                self.user_email = settings.PINBALL_MAP.get(
+                    "user_email", self.user_email
+                )
+                self.user_password = settings.PINBALL_MAP.get(
+                    "user_password", self.user_password
+                )
+                self.authentication_token = settings.PINBALL_MAP.get(
+                    "authentication_token", self.authentication_token
+                )
+                self.cache_key_prefix = settings.PINBALL_MAP.get(
+                    "cache_key_prefix", self.cache_key_prefix
+                )
                 self.dry_run = True if settings.DEBUG is True else False
             except Exception as exc:
-                raise ValueError("Could not use your Django settings for Pinball Map API because: {}".format(exc))
+                raise ValueError(
+                    "Could not use your Django settings for Pinball Map API because: {}".format(
+                        exc
+                    )
+                )
         if caches:
             self.cache = caches[self.cache_name]
         self.lmxs = []
@@ -164,11 +186,15 @@ class PinballMapClient:
             try:
                 details = self.auth_details(self.user_email, self.user_password)
             except Exception as msg:
-                logger.warning("PinballMapClient self-authentication failed. {}".format(msg))
+                logger.warning(
+                    "PinballMapClient self-authentication failed. {}".format(msg)
+                )
             if "authentication_token" in details:
                 self.authentication_token = details["authentication_token"]
         if not self.user_email or not self.authentication_token:
-            logger.info("Without user_email and authentication_token, all write operations will fail.")
+            logger.info(
+                "Without user_email and authentication_token, all write operations will fail."
+            )
 
     def get_all_machines(self) -> List[Dict]:
         """
@@ -178,19 +204,23 @@ class PinballMapClient:
 
         :return: list of every machine
         """
-        cache_key = '{}_machines'.format(self.cache_key_prefix)
+        cache_key = "{}_machines".format(self.cache_key_prefix)
         if self.cache:
             data = self.cache.get(cache_key, {})
             if data:
                 return data
         r = self.session.get("{}/machines.json".format(self.BASE_URL))
         if r.status_code != requests.codes.ok:
-            logger.error("Getting list of all pinball map games failed with status code {}".format(r.status_code))
+            logger.error(
+                "Getting list of all pinball map games failed with status code {}".format(
+                    r.status_code
+                )
+            )
             r.raise_for_status()
-        data = r.json()['machines']
+        data = r.json()["machines"]
         # patch raw data with searchable cleaned names
         for g in data:
-            g['cleaned_name'] = clean_name(g['name'])
+            g["cleaned_name"] = clean_name(g["name"])
         if self.cache:
             self.cache.set(cache_key, data, 15 * 60)
         return data
@@ -219,22 +249,30 @@ class PinballMapClient:
                 self.lmxs = data
                 return data
             del data
-        url = "{BASE_URL}/region/{region_name}/location_machine_xrefs.json".format(BASE_URL=self.BASE_URL,
-                                                                                   region_name=self.region_name)
+        url = "{BASE_URL}/region/{region_name}/location_machine_xrefs.json".format(
+            BASE_URL=self.BASE_URL, region_name=self.region_name
+        )
         r = self.session.get(url)
         if r.status_code != requests.codes.ok:
-            logger.error("Getting list of all pinball map games failed with status code {}".format(r.status_code))
+            logger.error(
+                "Getting list of all pinball map games failed with status code {}".format(
+                    r.status_code
+                )
+            )
         r.raise_for_status()
-        raw_data = r.json()['location_machine_xrefs']
-        data = [lmx for lmx in raw_data if int(lmx['location']['id']) == self.location_id]
+        raw_data = r.json()["location_machine_xrefs"]
+        data = [
+            lmx for lmx in raw_data if int(lmx["location"]["id"]) == self.location_id
+        ]
         del raw_data
         if self.cache:
             self.cache.set(cache_key, data, 15 * 60)
         self.lmxs = data
         return data
 
-    def machine_by_name(self, query_string: str, min_score: int = 2, include_score: bool = False) -> Union[
-        Tuple[Dict], Tuple[Tuple[Dict, str]]]:
+    def machine_by_name(
+        self, query_string: str, min_score: int = 2, include_score: bool = False
+    ) -> Union[Tuple[Dict], Tuple[Tuple[Dict, str]]]:
         """
         Finds likely name matches from the Pinball Map database and sorts results by a match quality score.
 
@@ -252,7 +290,7 @@ class PinballMapClient:
             score = score_match(query_string, g, query_words)
             if score >= min_score:
                 data = g.copy()
-                del data['cleaned_name']
+                del data["cleaned_name"]
                 results.append((data, score))
                 if score >= 150:
                     set_high_bar = True
@@ -273,7 +311,7 @@ class PinballMapClient:
         """
         all_games = self.get_all_machines()
         for g in all_games:
-            if g['ipdb_id'] == ipdb_id:
+            if g["ipdb_id"] == ipdb_id:
                 return g
         return None
 
@@ -286,7 +324,7 @@ class PinballMapClient:
         """
         all_games = self.get_all_machines()
         for g in all_games:
-            if g['id'] == map_id:
+            if g["id"] == map_id:
                 return g
         return None
 
@@ -302,12 +340,18 @@ class PinballMapClient:
         if not location_id:
             raise ValueError("Need a location id")
         r = self.session.get(
-            "{base}/locations/{id}/machine_details.json".format(base=self.BASE_URL, id=location_id))
+            "{base}/locations/{id}/machine_details.json".format(
+                base=self.BASE_URL, id=location_id
+            )
+        )
         if r.status_code != requests.codes.ok:
             logger.error(
-                "Getting list of machines at our location failed with status code {}".format(r.status_code))
+                "Getting list of machines at our location failed with status code {}".format(
+                    r.status_code
+                )
+            )
         r.raise_for_status()
-        return r.json()['machines']
+        return r.json()["machines"]
 
     def compare_location(self, my_machine_ids: Iterable[int]) -> Dict:
         """
@@ -318,7 +362,7 @@ class PinballMapClient:
         :return: {'add': [id0, id1, idn...], 'remove': [id0, id1, idn...], 'ignore': [...]}
         """
         my_machine_ids = frozenset(my_machine_ids)
-        map_machine_ids = frozenset([g['id'] for g in self.machines_at_location()])
+        map_machine_ids = frozenset([g["id"] for g in self.machines_at_location()])
         add = my_machine_ids.difference(map_machine_ids)
         remove = map_machine_ids.difference(my_machine_ids)
         ignore = my_machine_ids.intersection(map_machine_ids)
@@ -333,7 +377,7 @@ class PinballMapClient:
         """
         lmxs = self.get_location_machine_xrefs()
         for lmx in lmxs:
-            if lmx['machine']['id'] == machine_id:
+            if lmx["machine"]["id"] == machine_id:
                 return lmx
         return {}
 
@@ -351,21 +395,31 @@ class PinballMapClient:
         if not lmx:
             logger.warning(
                 "Tried to remove machine_id {} from pinball map, but there was no matching LMX.".format(
-                    machine_id))
+                    machine_id
+                )
+            )
             return None
-        lmx_id = lmx['id']
-        url = "{BASE_URL}/location_machine_xrefs/{lmx_id}.json".format(BASE_URL=self.BASE_URL, lmx_id=lmx_id)
+        lmx_id = lmx["id"]
+        url = "{BASE_URL}/location_machine_xrefs/{lmx_id}.json".format(
+            BASE_URL=self.BASE_URL, lmx_id=lmx_id
+        )
         if self.dry_run:
-            logger.warning("since Django is in DEBUG mode, I'm not going to DELETE {}".format(url))
+            logger.warning(
+                "since Django is in DEBUG mode, I'm not going to DELETE {}".format(url)
+            )
             return None
-        params = {'user_email': self.user_email, 'user_token': self.authentication_token, 'id': lmx_id}
+        params = {
+            "user_email": self.user_email,
+            "user_token": self.authentication_token,
+            "id": lmx_id,
+        }
         r = self.session.delete(url, params=params)
         if r.status_code != requests.codes.ok:
             logger.error(
-                "Failed to remove id {} at URL {} status code={}, content: {}".format(machine_id,
-                                                                                      r.url,
-                                                                                      r.status_code,
-                                                                                      r.content))
+                "Failed to remove id {} at URL {} status code={}, content: {}".format(
+                    machine_id, r.url, r.status_code, r.content
+                )
+            )
         r.raise_for_status()
         result = r.json()
         return result
@@ -382,7 +436,9 @@ class PinballMapClient:
         """
         url = "{BASE_URL}/location_machine_xrefs.json".format(BASE_URL=self.BASE_URL)
         if self.dry_run:
-            logger.warning("since Django is in DEBUG mode, I'm not going to POST to {}".format(url))
+            logger.warning(
+                "since Django is in DEBUG mode, I'm not going to POST to {}".format(url)
+            )
             return None
         params = dict(
             user_email=self.user_email,
@@ -393,9 +449,10 @@ class PinballMapClient:
         r = self.session.post(url, params=params)
         if r.status_code != requests.codes.ok:
             logger.warning(
-                "Failed to add id {} to Pinball Map at URL {} :: status code={}, content: {}".format(machine_id, r.url,
-                                                                                                     r.status_code,
-                                                                                                     r.content))
+                "Failed to add id {} to Pinball Map at URL {} :: status code={}, content: {}".format(
+                    machine_id, r.url, r.status_code, r.content
+                )
+            )
         r.raise_for_status()
         result = r.json()
         return result
@@ -413,22 +470,27 @@ class PinballMapClient:
         errors = {}
         added = []
         removed = []
-        for machine_id in change_data['add']:
+        for machine_id in change_data["add"]:
             try:
                 self.add_machine(machine_id)
             except Exception as exc:
                 errors[machine_id] = "Failed to add: {}".format(exc)
                 continue
             added.append(machine_id)
-        for machine_id in change_data['remove']:
+        for machine_id in change_data["remove"]:
             try:
                 self.remove_machine(machine_id)
             except Exception as exc:
                 errors[machine_id] = "Failed to remove: {}".format(exc)
                 continue
             removed.append(machine_id)
-        return dict(added=len(added), removed=len(removed), ignored=len(change_data['ignore']), errors=errors,
-                    error_count=len(errors))
+        return dict(
+            added=len(added),
+            removed=len(removed),
+            ignored=len(change_data["ignore"]),
+            errors=errors,
+            error_count=len(errors),
+        )
 
     def _update_self(self, data):
         if "errors" in data or "user" not in data:
@@ -437,7 +499,9 @@ class PinballMapClient:
         self.authentication_token = user["authentication_token"]
         self.user_email = user["email"]
 
-    def signup_user(self, username: str, email: str, password: str, update_self: bool = True) -> dict:
+    def signup_user(
+        self, username: str, email: str, password: str, update_self: bool = True
+    ) -> dict:
         """
         Creates a user account. Note: This is an easy way to get a token to use later.
         If login is successful, optionally set the token for this client.
@@ -472,27 +536,41 @@ class PinballMapClient:
         :param update_self: whether to update this client instance's authentication_token, default is True
         :return: result of auth_details request as dict
         """
-        params = dict(username=username, email=email, password=password, confirm_password=password)
+        params = dict(
+            username=username, email=email, password=password, confirm_password=password
+        )
         url = "{BASE_URL}/users/signup.json".format(BASE_URL=self.BASE_URL)
         r = self.session.post(url, params=params)
         if r.status_code != requests.codes.ok:
-            logger.warning("Failed to create Pinball Map user account for {}. status code={}, "
-                           "content={}".format(username, r.status_code, r.content))
+            logger.warning(
+                "Failed to create Pinball Map user account for {}. status code={}, "
+                "content={}".format(username, r.status_code, r.content)
+            )
             r.raise_for_status()
         result = r.json()
         if "errors" in result:
-            logger.error("Failed to create Pinball Map API account for {}: {}".format(username, str(result["errors"])))
+            logger.error(
+                "Failed to create Pinball Map API account for {}: {}".format(
+                    username, str(result["errors"])
+                )
+            )
             # be persistent in case account exists by trying to log in anyway:
             try:
                 return self.auth_details(email, password, update_self=update_self)
-            except PinballMapAuthenticationFailure as err:
-                logger.error("Could neither create nor log into Pinball Map account {}".format(email))
+            except PinballMapAuthenticationFailure:
+                logger.error(
+                    "Could neither create nor log into Pinball Map account {}".format(
+                        email
+                    )
+                )
                 raise
         if update_self:
             self._update_self(result)
         return result
 
-    def auth_details(self, username: str = None, password: str = None, update_self: bool = True) -> dict:
+    def auth_details(
+        self, username: str = None, password: str = None, update_self: bool = True
+    ) -> dict:
         """
         Gets the authorization details for user.
         If login is successful, optionally set the token for this client (default is True).
@@ -500,6 +578,7 @@ class PinballMapClient:
         If we have settings in Django, we'll use those automatically if username and password are None.
 
         Example responses:
+        ------------------
 
         .. code-block:: json
             {
@@ -531,11 +610,14 @@ class PinballMapClient:
         if r.status_code != requests.codes.ok:
             logger.warning(
                 "Failed to get Pinball Map auth details for username: {}. status code={}, "
-                "content={}".format(username, r.status_code, r.content))
+                "content={}".format(username, r.status_code, r.content)
+            )
             r.raise_for_status()
         result = r.json()
         if "errors" in result:
-            logger.error("username {} failed to authenticate to Pinball Map API".format(username))
+            logger.error(
+                "username {} failed to authenticate to Pinball Map API".format(username)
+            )
             raise PinballMapAuthenticationFailure(str(result["errors"]))
         if update_self:
             self._update_self(result)

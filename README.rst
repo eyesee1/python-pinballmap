@@ -57,18 +57,20 @@ Limited functionality at this point, but it does a few things.
 .. code:: bash
 
     >>> pinballmap --help
+
     usage: pinballmap [-h] [-l LOCATION_ID] [-r REGION_NAME] [-i]
-                      [-t AUTHENTICATION_TOKEN] [-e USER_EMAIL]
-                      {search,machine_id,machine_ipdb,loc_machines}
+                      [-t AUTHENTICATION_TOKEN] [-e USER_EMAIL] [-p USER_PASSWORD]
+                      {search,machine_id,machine_ipdb,loc_machines,get_token}
                       [value [value ...]]
 
-    Interact with Pinball Map API
+    Interact with the Pinball Map API from the command line.
 
     positional arguments:
-      {search,machine_id,machine_ipdb,loc_machines}
+      {search,machine_id,machine_ipdb,loc_machines,get_token}
                             search: finds machine data by name; machine_id: finds
                             machine matching id; machine_ipdb: finds machine by
                             IPDB id; loc_machines: list machines at a location
+                            get_token: get an auth token for email and password
       value
 
     optional arguments:
@@ -81,9 +83,17 @@ Limited functionality at this point, but it does a few things.
                             API authentication token (needed for all write
                             operations)
       -e USER_EMAIL, --email USER_EMAIL
-                            User email address (needed for all write operations)
+                            API User email address (required for all write
+                            operations)
+      -p USER_PASSWORD, --passwword USER_PASSWORD
+                            API User password (required if you are not providing a
+                            token with -t/--token)
 
-    Happy flipping!
+    Happy flipping! This is python-pinballmap v0.2.2, supporting Pinball Map API
+    v1.0
+
+
+
 
     >>> pinballmap search 'Game of Thrones (LE)'
     id    name                       manufacturer      year    ipdb_id
@@ -93,41 +103,50 @@ Limited functionality at this point, but it does a few things.
     2527  Game of Thrones (Premium)  Stern             2015
      760  The Bally Game Show        Bally             1990        985
 
+
     >>> pinballmap --location 4495 loc_machines
-      id  name                            manufacturer      year    ipdb_id
-    ----  ------------------------------  --------------  ------  ---------
-    2773  Aerosmith (LE)                  Stern             2017
-     643  Attack from Mars                Bally             1995       3781
-    2728  Batman 66 (LE)                  Stern             2016
-     656  Elvira and the Party Monsters   Bally             1989        782
-     852  Galaxy                          Stern             1980        980
-    2442  Game of Thrones (LE)            Stern             2015
-    2571  Ghostbusters (LE)               Stern             2016
-     695  Junk Yard                       Williams          1996       4014
-    2353  Kiss                            Stern             2015       6265
-    2306  Medieval Madness (Remake)       Planetary         2015
-    1606  Metallica (Premium)             Stern             2013       5478
-     641  Monster Bash                    Williams          1998       4441
-     675  No Fear: Dangerous Sports       Williams          1995       2852
-     677  Radical!                        Bally             1990       1904
-     916  Robocop                         Data East         1989       1976
-    2165  Star Trek (Pro)                 Stern             2013       6044
-     684  Star Trek: The Next Generation  Williams          1993       2357
-     694  Star Wars                       Data East         1992       2358
-    2844  Star Wars (Premium)             Stern             2017
-    1118  TRON: Legacy                    Stern             2011       5682
-     779  Taxi                            Williams          1988       2505
-     687  The Addams Family               Bally             1992         20
-    2203  The Walking Dead (Pro)          Stern             2014       6155
-    2277  Wrestlemania                    Stern             2015
+     id  name                                        manufacturer      year    ipdb_id
+   ----  ------------------------------------------  --------------  ------  ---------
+   1296  AC/DC (Premium)                             Stern             2012       5775
+   2832  Attack From Mars (Remake)                   Chicago Gaming    2017
+   2728  Batman 66 (LE)                              Stern             2016       6355
+   3022  Deadpool (Pro)                              Stern             2018
+    738  Dr. Dude                                    Bally             1990        737
+   2442  Game of Thrones (LE)                        Stern             2015       6309
+   2571  Ghostbusters (LE)                           Stern             2016       6334
+   2875  Guardians of the Galaxy (Pro)               Stern             2017       6474
+   2924  Iron Maiden: Legacy of the Beast (Premium)  Stern             2018
+    695  Junk Yard                                   Williams          1996       4014
+   2353  Kiss                                        Stern             2015       6265
+   2306  Medieval Madness (Remake)                   Chicago Gaming    2015       6263
+   1606  Metallica (Premium)                         Stern             2013       6030
+    641  Monster Bash                                Williams          1998       4441
+    723  PIN-BOT                                     Williams          1986       1796
+    677  Radical!                                    Bally             1990       1904
+   1276  Shaq Attaq                                  Gottlieb          1995       2874
+   2565  Spider-Man (Vault Edition)                  Stern             2016       6328
+    684  Star Trek: The Next Generation              Williams          1993       2357
+    694  Star Wars                                   Data East         1992       2358
+   2844  Star Wars (Premium)                         Stern             2017       6429
+   1118  TRON: Legacy                                Stern             2011       5682
+    779  Taxi                                        Williams          1988       2505
+    686  Terminator 2: Judgment Day                  Williams          1991       2524
+    687  The Addams Family                           Bally             1992         20
+   2203  The Walking Dead (Pro)                      Stern             2014       6155
+   2866  Total Nuclear Annihilation                  Spooky            2017       6444
+    689  White Water                                 Williams          1993       2768
+   2277  Wrestlemania                                Stern             2015       6215
+
 
     >>> pinballmap --location 4495 --id-only loc_machines
-    2773,643,2728,656,852,2442,2571,695,2353,2306,1606,641,675,677,916,2165,684,694,2844,1118,779,687,2203,2277
+    1296,2832,2728,3022,738,2442,2571,2875,2924,695,2353,2306,1606,641,723,677,1276,2565,684,694,2844,1118,779,686,687,2203,2866,689,2277
+
+
 
     >>> pinballmap machine_id 2571
-      id  name               manufacturer      year  ipdb_id
-    ----  -----------------  --------------  ------  ---------
-    2571  Ghostbusters (LE)  Stern             2016
+     id  name               manufacturer      year    ipdb_id
+   ----  -----------------  --------------  ------  ---------
+   2571  Ghostbusters (LE)  Stern             2016       6334
 
 
 Example Django ``settings.py``
@@ -139,7 +158,7 @@ NOTE: Django settings, if present, will take precedence over arguments to Pinbal
    :emphasize-lines: 4,5
 
     PINBALL_MAP = {
-        'region_name': 'chicago',
+        'region_name': 'chicago', # a region name to use if not specified in code
         'location_id': your_location_id,  # should be an int
         # email and token are required for all write operations
         'user_email': '...', # your pinball map account email, needed for write operations
@@ -182,6 +201,19 @@ Create yourapp/management/commands/update_pinball_map.py and use this as a start
 Change Log
 ==========
 
+0.3.0
+-----
+
+* requires Python 3.6
+* CLI catches authentication errors more cleanly
+* mostly code cleanups
+* help outputs version # of python-pinballmap and Pinball Map API version supported
+* all python code is now formatted using `black`_
+
+.. _black: https://black.readthedocs.io/en/stable/
+
+
+
 0.2.0
 -----
 
@@ -189,6 +221,7 @@ Change Log
 * now supports authentication tokens, signup process, getting auth details
 * now uses https by default
 * fix dry-run bug
+
 
 0.1.2
 -----

@@ -2,3 +2,4 @@
 twine==1.8.1
 bumpversion==0.5.3
 Sphinx==1.5.2
+twine

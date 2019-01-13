@@ -17,8 +17,8 @@ Welcome to python-pinballmap's documentation!
 PinballMapClient docs
 =====================
 
-.. automodule:: pinballmap
-   :members:
+.. automodule:: pinballmap.client
+   :members: PinballMapClient
 
 
 Indices and tables

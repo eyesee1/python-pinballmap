@@ -8,7 +8,7 @@ Special thanks to `Logan Arcade`_ in Chicago, IL for supporting development of t
 .. _Pinball Map API: http://pinballmap.com/api/v1/docs
 .. _Logan Arcade: https://loganarcade.com/
 
-Current version: 0.3.3
+Current version: 0.3.4
 
 `Source on GitHub <https://github.com/eyesee1/python-pinballmap>`_
 
@@ -21,7 +21,7 @@ Installation
 
 .. code:: bash
 
-    $ pip install python-pinballmap
+    $ pip install pinballmap
 
 
 Quick Start
@@ -203,7 +203,13 @@ Create yourapp/management/commands/update_pinball_map.py and use this as a start
 Change Log
 ==========
 
-0.3.0
+0.3.4
+-----
+* hopefully fix docs
+* fix error from bumpversion
+
+
+0.3.3
 -----
 
 * requires Python 3.6

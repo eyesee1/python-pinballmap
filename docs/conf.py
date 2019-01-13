@@ -47,7 +47,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "python-pinballmap"
+project = "pinballmap"
 copyright = "2017, Duna Csandl"
 author = "Duna Csandl"
 

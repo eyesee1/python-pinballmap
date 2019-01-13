@@ -203,7 +203,13 @@ Create yourapp/management/commands/update_pinball_map.py and use this as a start
 Change Log
 ==========
 
-0.3.0
+0.3.4
+-----
+* hopefully fix docs
+* fix error from bumpversion
+
+
+0.3.3
 -----
 
 * requires Python 3.6

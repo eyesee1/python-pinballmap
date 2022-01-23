@@ -1,111 +1,27 @@
 # coding: utf-8
 
 import logging
-import re
-from functools import wraps
 from operator import itemgetter
 from typing import Dict, Iterable, List, Tuple, Union
 
 import requests
 
+from .auth import requires_authorization
+from .exceptions import PinballMapAuthenticationFailure
+from .name_matching import score_match
+from .utilities import clean_name, ok_response_code
+
 try:
     from django.conf import settings
     from django.core.cache import caches
+
 except ImportError:
     settings = None
     caches = None
 
-__all__ = ["PinballMapClient", "VERSION", "PinballMapAuthenticationFailure"]
+__all__ = ["PinballMapClient"]
 
-VERSION = "0.3.4"
 logger = logging.getLogger(__name__)
-STRIP_WORDS = ("the", "and", "for", "with", "a", "of")
-MODEL_ENDINGS = ("le", "pro", "premium", "edition" "standard")
-punctuation_regex = re.compile(r"\W+")  # any non-alphanumeric characters
-spaces_regex = re.compile(r"\s{2,}")  # 2 or more whitespace characters
-
-
-def clean_name(s: str) -> str:
-    """
-    Cleans up a machine name string for better search matching by removing common words and stripping
-    out junk.
-
-    :param s: machine name
-    :return: cleaned name
-    """
-    original = s
-    s = punctuation_regex.sub(" ", s).lower()
-    for word in STRIP_WORDS:
-        pattern = r"\b" + word + r"\b"
-        s = re.sub(pattern, " ", s)
-    s = spaces_regex.sub(" ", s).strip()
-    # handle unlikely case where the above leaves an empty string:
-    if not s:
-        # simpler cleaning that doesn't remove any words
-        # I mean: whoa, what if somebody names a machine "And For The", or "The The"?
-        s = original.lower()
-        s = spaces_regex.sub(" ", s).strip()
-    return s
-
-
-def score_match(
-    query_string: str, machine_data: Dict, query_words: Iterable[str]
-) -> int:
-    """
-    Calculates a quality score to sort search results.
-
-    :param query_string: the cleaned search query string
-    :param machine_data: dict of the Pinball Map game data
-    :param query_words: words in the query string, already split into words
-    :return:
-    """
-    score = 0
-    if query_string == machine_data["cleaned_name"]:
-        return 150
-    if query_string in machine_data["cleaned_name"]:
-        score += 2
-    g_words = machine_data["cleaned_name"].split()
-    last_word = g_words[-1]
-    if last_word in MODEL_ENDINGS:
-        score -= 2
-    for query_word in query_words:
-        if query_word == last_word:
-            continue
-        if query_word in g_words:
-            if len(query_word) >= 3:
-                score += 5 + len(query_word) * 2
-            else:
-                score += 1
-    return score
-
-
-class TokenRequiredException(Exception):
-    pass
-
-
-class PinballMapAuthenticationFailure(Exception):
-    pass
-
-
-def requires_authorization(f):
-    @wraps(f)
-    def wrapper(self, *args, **kwargs):
-        if not self.authentication_token and self.user_email:
-            if self.user_email and self.user_password:
-                # we have credentials, why not try them?
-                try:
-                    self.auth_details(
-                        self.user_email, self.user_password, update_self=True
-                    )
-                    return f(self, *args, **kwargs)
-                except PinballMapAuthenticationFailure:
-                    pass
-            raise TokenRequiredException(
-                "Pinball Map authentication_token and user_email required for this operation."
-            )
-        return f(self, *args, **kwargs)
-
-    return wrapper
 
 
 class PinballMapClient:
@@ -124,7 +40,7 @@ class PinballMapClient:
 
     Note: the API uses names a bit inconsistently… sometimes it's user_token, sometimes
     it's authentication_token. Sometimes username, sometimes login. Always check the docs when adding/changing code here.
-    
+
     :param authentication_token: Your Pinball Map API Authentication Token, needed for all write operations.
     :param user_email: map account email
     :param user_password: map account password
@@ -414,7 +330,7 @@ class PinballMapClient:
             "id": lmx_id,
         }
         r = self.session.delete(url, params=params)
-        if r.status_code != requests.codes.ok:
+        if not ok_response_code(r.status_code):
             logger.error(
                 "Failed to remove id {} at URL {} status code={}, content: {}".format(
                     machine_id, r.url, r.status_code, r.content
@@ -447,7 +363,7 @@ class PinballMapClient:
             machine_id=machine_id,
         )
         r = self.session.post(url, params=params)
-        if r.status_code != requests.codes.ok:
+        if not ok_response_code(r.status_code):
             logger.warning(
                 "Failed to add id {} to Pinball Map at URL {} :: status code={}, content: {}".format(
                     machine_id, r.url, r.status_code, r.content
@@ -541,7 +457,7 @@ class PinballMapClient:
         )
         url = "{BASE_URL}/users/signup.json".format(BASE_URL=self.BASE_URL)
         r = self.session.post(url, params=params)
-        if r.status_code != requests.codes.ok:
+        if not ok_response_code(r.status_code):
             logger.warning(
                 "Failed to create Pinball Map user account for {}. status code={}, "
                 "content={}".format(username, r.status_code, r.content)

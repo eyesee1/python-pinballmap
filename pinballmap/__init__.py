@@ -1,4 +1,4 @@
 # coding=utf-8
-from .client import PinballMapClient
+from pinballmap.client import PinballMapClient
 
 __all__ = ["PinballMapClient"]

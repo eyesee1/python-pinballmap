@@ -6,7 +6,9 @@ from typing import Dict, Iterable
 
 from tabulate import tabulate
 
-from .client import PinballMapClient, VERSION, PinballMapAuthenticationFailure
+from pinballmap.client import PinballMapClient
+from pinballmap.constants import VERSION
+from pinballmap.exceptions import PinballMapAuthenticationFailure
 
 
 def result_table(machines: Iterable[Dict]) -> str:

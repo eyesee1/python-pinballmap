@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-pinballmap"
-version = "0.3.5"
+version = "0.3.6"
 description = "Python client for the Pinball Map API"
 authors = ["Isaac Csandl <eyesee1@me.com>"]
 license = "MIT"

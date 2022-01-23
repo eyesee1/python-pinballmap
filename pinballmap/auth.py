@@ -1,6 +1,9 @@
 from functools import wraps
 
-from pinballmap.exceptions import PinballMapAuthenticationFailure, TokenRequiredException
+from pinballmap.exceptions import (
+    PinballMapAuthenticationFailure,
+    TokenRequiredException,
+)
 
 
 def requires_authorization(f):

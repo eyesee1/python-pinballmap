@@ -1,7 +1,7 @@
 import re
 from typing import Dict, Iterable
 
-from constants import MODEL_ENDINGS
+from pinballmap.constants import MODEL_ENDINGS
 
 punctuation_regex = re.compile(r"\W+")  # any non-alphanumeric characters
 spaces_regex = re.compile(r"\s{2,}")  # 2 or more whitespace characters

@@ -157,7 +157,6 @@ Example Django ``settings.py``
 NOTE: Django settings, if present, will take precedence over arguments to PinballMapClient(...)
 
 .. code-block:: python
-   :emphasize-lines: 4,5
 
     PINBALL_MAP = {
         'region_name': 'chicago', # a region name to use if not specified in code
@@ -178,7 +177,6 @@ Example Django management command
 Create yourapp/management/commands/update_pinball_map.py and use this as a starting point:
 
 .. code-block:: python
-   :emphasize-lines: 11
 
    from django.core.management.base import BaseCommand, CommandError
    from pinballmap import PinballMapClient
@@ -208,7 +206,7 @@ Change Log
 -----
 
 * fixed a bug where code expected the wrong status code
-* changed from using `requirements.txt` to Poetry for package management
+* changed from using ``requirements.txt`` to Poetry for package management
 * did a bit of code reorganization
 
 

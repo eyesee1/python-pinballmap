@@ -6,10 +6,10 @@ from typing import Dict, Iterable, List, Tuple, Union
 
 import requests
 
-from .auth import requires_authorization
-from .exceptions import PinballMapAuthenticationFailure
-from .name_matching import score_match
-from .utilities import clean_name, ok_response_code
+from pinballmap.auth import requires_authorization
+from pinballmap.exceptions import PinballMapAuthenticationFailure
+from pinballmap.name_matching import score_match
+from pinballmap.utilities import clean_name, ok_response_code
 
 try:
     from django.conf import settings

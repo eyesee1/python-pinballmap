@@ -1,7 +1,7 @@
 import re
 
-from constants import STRIP_WORDS
-from name_matching import punctuation_regex, spaces_regex
+from pinballmap.constants import STRIP_WORDS
+from pinballmap.name_matching import punctuation_regex, spaces_regex
 
 
 def clean_name(s: str) -> str:

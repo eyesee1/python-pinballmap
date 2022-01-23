@@ -203,6 +203,15 @@ Create yourapp/management/commands/update_pinball_map.py and use this as a start
 Change Log
 ==========
 
+
+0.3.6
+-----
+
+* fixed a bug where code expected the wrong status code
+* changed from using `requirements.txt` to Poetry for package management
+* did a bit of code reorganization
+
+
 0.3.4
 -----
 * hopefully fix docs

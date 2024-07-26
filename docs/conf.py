@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # python-pinballmap documentation build configuration file, created by
 # sphinx-quickstart on Sat Feb  4 14:39:43 2017.

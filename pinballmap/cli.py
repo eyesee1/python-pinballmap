@@ -1,8 +1,7 @@
-# coding: utf-8
 
 import argparse
 import sys
-from typing import Dict, Iterable
+from collections.abc import Iterable
 
 from tabulate import tabulate
 
@@ -11,7 +10,7 @@ from pinballmap.constants import VERSION
 from pinballmap.exceptions import PinballMapAuthenticationFailure
 
 
-def result_table(machines: Iterable[Dict]) -> str:
+def result_table(machines: Iterable[dict]) -> str:
     table = [["id", "name", "manufacturer", "year", "ipdb_id"]]
     for g in machines:
         table.append([g["id"], g["name"], g["manufacturer"], g["year"], g["ipdb_id"]])

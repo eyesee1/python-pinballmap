@@ -18,7 +18,7 @@ def result_table(machines: Iterable[Dict]) -> str:
     return tabulate(table, headers="firstrow")
 
 
-def main():
+def cli():
     parser = argparse.ArgumentParser(
         description="Interact with the Pinball Map API from the command line.",
         prog="pinballmap",

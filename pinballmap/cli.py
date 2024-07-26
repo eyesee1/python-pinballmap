@@ -1,3 +1,4 @@
+
 import argparse
 import sys
 from collections.abc import Iterable
@@ -20,8 +21,7 @@ def cli():
     parser = argparse.ArgumentParser(
         description="Interact with the Pinball Map API from the command line.",
         prog="pinballmap",
-        epilog=f"Happy flipping! This is python-pinballmap v{VERSION}, supporting "
-        f"Pinball Map API v{PinballMapClient.API_VERSION}",
+        epilog=f"Happy flipping! This is python-pinballmap v{VERSION}, supporting Pinball Map API v{PinballMapClient.API_VERSION}",
     )
     parser.add_argument("-l", "--location", type=int, dest="location_id", default=None)
     parser.add_argument(
@@ -54,8 +54,7 @@ def cli():
     parser.add_argument(
         "-p",
         "--password",
-        help="API User password (required if you are not providing a token "
-        "with -t/--token)",
+        help="API User password (required if you are not providing a token with -t/--token)",
         type=str,
         dest="user_password",
         default=None,

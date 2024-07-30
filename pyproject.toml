@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pinballmap"
-version = "0.4.4"
+version = "0.4.5"
 description = "Python client for the Pinball Map API"
 keywords = ["pinball", "map", "API"]
 readme = "README.rst"

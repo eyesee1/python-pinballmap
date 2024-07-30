@@ -1,4 +1,3 @@
-# coding=utf-8
 """A setuptools based setup module.
 
 See:
@@ -30,8 +29,8 @@ setup(
     # The project's main homepage.
     url="https://github.com/eyesee1/python-pinballmap",
     # Author details
-    author="Duna Csandl",
-    author_email="marinas.bobble-05@icloud.com",
+    author="Isaac Csandl",
+    author_email="eyesee1@me.com",
     # Choose your license
     license="MIT",
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -85,5 +84,5 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-    entry_points={"console_scripts": ["pinballmap=pinballmap.cli:main"]},
+    entry_points={"console_scripts": ["pinballmap=pinballmap.cli:cli"]},
 )

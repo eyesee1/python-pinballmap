@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # python-pinballmap documentation build configuration file, created by
 # sphinx-quickstart on Sat Feb  4 14:39:43 2017.
@@ -48,8 +47,8 @@ master_doc = "index"
 
 # General information about the project.
 project = "pinballmap"
-copyright = "2017, Duna Csandl"
-author = "Duna Csandl"
+copyright = "2017, Isaac Csandl"
+author = "Isaac Csandl"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -129,7 +128,7 @@ latex_documents = [
         master_doc,
         "python-pinballmap.tex",
         "python-pinballmap Documentation",
-        "Duna Csandl",
+        "Isaac Csandl",
         "manual",
     )
 ]

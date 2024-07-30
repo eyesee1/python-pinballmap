@@ -6,8 +6,8 @@ from pinballmap.name_matching import punctuation_regex, spaces_regex
 
 def clean_name(s: str) -> str:
     """
-    Cleans up a machine name string for better search matching by removing common words and stripping
-    out junk.
+    Cleans up a machine name string for better search matching by removing common words
+    and stripping out junk.
 
     :param s: machine name
     :return: cleaned name

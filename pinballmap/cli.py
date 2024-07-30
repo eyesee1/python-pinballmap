@@ -1,8 +1,6 @@
-# coding: utf-8
-
 import argparse
 import sys
-from typing import Dict, Iterable
+from collections.abc import Iterable
 
 from tabulate import tabulate
 
@@ -11,18 +9,19 @@ from pinballmap.constants import VERSION
 from pinballmap.exceptions import PinballMapAuthenticationFailure
 
 
-def result_table(machines: Iterable[Dict]) -> str:
+def result_table(machines: Iterable[dict]) -> str:
     table = [["id", "name", "manufacturer", "year", "ipdb_id"]]
     for g in machines:
         table.append([g["id"], g["name"], g["manufacturer"], g["year"], g["ipdb_id"]])
     return tabulate(table, headers="firstrow")
 
 
-def main():
+def cli():
     parser = argparse.ArgumentParser(
         description="Interact with the Pinball Map API from the command line.",
         prog="pinballmap",
-        epilog=f"Happy flipping! This is python-pinballmap v{VERSION}, supporting Pinball Map API v{PinballMapClient.API_VERSION}",
+        epilog=f"Happy flipping! This is python-pinballmap v{VERSION}, supporting "
+        f"Pinball Map API v{PinballMapClient.API_VERSION}",
     )
     parser.add_argument("-l", "--location", type=int, dest="location_id", default=None)
     parser.add_argument(
@@ -55,7 +54,8 @@ def main():
     parser.add_argument(
         "-p",
         "--password",
-        help="API User password (required if you are not providing a token with -t/--token)",
+        help="API User password (required if you are not providing a token "
+        "with -t/--token)",
         type=str,
         dest="user_password",
         default=None,

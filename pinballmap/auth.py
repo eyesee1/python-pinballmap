@@ -20,7 +20,8 @@ def requires_authorization(f):
                 except PinballMapAuthenticationFailure:
                     pass
             raise TokenRequiredException(
-                "Pinball Map authentication_token and user_email required for this operation."
+                "Pinball Map authentication_token and user_email required for this "
+                "operation."
             )
         return f(self, *args, **kwargs)
 

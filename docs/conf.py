@@ -47,8 +47,8 @@ master_doc = "index"
 
 # General information about the project.
 project = "pinballmap"
-copyright = "2017, Duna Csandl"
-author = "Duna Csandl"
+copyright = "2017, Isaac Csandl"
+author = "Isaac Csandl"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -128,7 +128,7 @@ latex_documents = [
         master_doc,
         "python-pinballmap.tex",
         "python-pinballmap Documentation",
-        "Duna Csandl",
+        "Isaac Csandl",
         "manual",
     )
 ]

@@ -1,0 +1,5 @@
+# this file is only for the benefit of ReadTheDocs because, IRONICALLY, their theme is not compatible with the latest version of Sphinx
+# TODO delete this when compatibility is fixed
+sphinx==7.4.7
+sphinx-rtd-theme==2.0.0
+sphinxcontrib-jquery==4.1

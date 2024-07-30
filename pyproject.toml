@@ -2,6 +2,7 @@
 name = "pinballmap"
 version = "0.4.3"
 description = "Python client for the Pinball Map API"
+readme = "README.rst"
 authors = ["Duna Csandl <marinas.bobble-05@icloud.com>"]
 license = "MIT"
 packages = [

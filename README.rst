@@ -201,9 +201,17 @@ Create yourapp/management/commands/update_pinball_map.py and use this as a start
 Change Log
 ==========
 
+
+0.4.4
+-----
+* fix build to include this README
+* add ``.readthedocs.yaml`` so docs can build
+
+
 0.4.3
 -----
 
+* (this version will be yanked because it's broken)
 * updated minimum Python version to 3.11
 * changed docs theme from "classic" to ReadTheDocs
 * updated some incorrect information

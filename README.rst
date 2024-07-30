@@ -208,7 +208,7 @@ Change Log
 * changed docs theme from "classic" to ReadTheDocs
 * updated some incorrect information
 * updated dependencies
-* removed setup.py and fixed Poetry config so it can install, build, and publish properly
+* fixed Poetry config so it can install, build, and publish properly
 
 
 0.3.6

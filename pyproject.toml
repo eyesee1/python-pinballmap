@@ -2,32 +2,43 @@
 name = "pinballmap"
 version = "0.4.4"
 description = "Python client for the Pinball Map API"
+<<<<<<< HEAD
+=======
+keywords = ["pinball", "map", "API"]
+>>>>>>> develop
 readme = "README.rst"
 authors = ["Duna Csandl <marinas.bobble-05@icloud.com>"]
 license = "MIT"
 packages = [
     { include = "pinballmap" },
 ]
+include = ["requirements.txt"]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0.0"
 requests = "^2.32.3"
 tabulate = "^0.9.0"
 
+
 [tool.poetry.group.dev]
 optional = true
+
 
 [tool.poetry.group.dev.dependencies]
 bump2version = "*"
 ipython = "^8.26.0"
-jupyter = "^1.0.0"
+jupyter = { version = "^1.0.0", optional = true }
 pytest = "^8.3.2"
 Sphinx = "<8.0.0"
-twine = "*"
-readme-renderer = "*"
 ruff = "^0.5.5"
 isort = "^5.13.2"
-sphinx-rtd-theme = "^2.0.0"
+sphinx-rtd-theme = "*"
+sphinxcontrib-jquery = "^4.1"
+
+
+[tool.poetry.extras]
+jupyter = ["jupyter"]
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

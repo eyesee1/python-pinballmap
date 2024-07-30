@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Iterable
+from collections.abc import Iterable
 
 from pinballmap.constants import MODEL_ENDINGS
 
@@ -8,7 +8,7 @@ spaces_regex = re.compile(r"\s{2,}")  # 2 or more whitespace characters
 
 
 def score_match(
-    query_string: str, machine_data: Dict, query_words: Iterable[str]
+    query_string: str, machine_data: dict, query_words: Iterable[str]
 ) -> int:
     """
     Calculates a quality score to sort search results.

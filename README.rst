@@ -8,7 +8,7 @@ Special thanks to `Logan Arcade`_ in Chicago, IL for supporting development of t
 .. _Pinball Map API: http://pinballmap.com/api/v1/docs
 .. _Logan Arcade: https://loganarcade.com/
 
-Current version: 0.4.1
+Current version: 0.4.2
 
 `Source on GitHub <https://github.com/eyesee1/python-pinballmap>`_
 
@@ -200,6 +200,15 @@ Create yourapp/management/commands/update_pinball_map.py and use this as a start
 
 Change Log
 ==========
+
+0.4.3
+-----
+
+* updated minimum Python version to 3.11
+* changed docs theme from "classic" to ReadTheDocs
+* updated some incorrect information
+* updated dependencies
+* removed setup.py and fixed Poetry config so it can install, build, and publish properly
 
 
 0.3.6

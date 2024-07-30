@@ -8,7 +8,7 @@ Special thanks to `Logan Arcade`_ in Chicago, IL for supporting development of t
 .. _Pinball Map API: http://pinballmap.com/api/v1/docs
 .. _Logan Arcade: https://loganarcade.com/
 
-Current version: 0.4.3
+Current version: 0.4.4
 
 `Source on GitHub <https://github.com/eyesee1/python-pinballmap>`_
 
@@ -201,9 +201,17 @@ Create yourapp/management/commands/update_pinball_map.py and use this as a start
 Change Log
 ==========
 
+
+0.4.4
+-----
+* fix build to include this README
+* add ``.readthedocs.yaml`` so docs can build
+
+
 0.4.3
 -----
 
+* (this version will be yanked because it's broken)
 * updated minimum Python version to 3.11
 * changed docs theme from "classic" to ReadTheDocs
 * updated some incorrect information

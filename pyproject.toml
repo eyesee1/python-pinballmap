@@ -2,10 +2,7 @@
 name = "pinballmap"
 version = "0.4.4"
 description = "Python client for the Pinball Map API"
-<<<<<<< HEAD
-=======
 keywords = ["pinball", "map", "API"]
->>>>>>> develop
 readme = "README.rst"
 authors = ["Duna Csandl <marinas.bobble-05@icloud.com>"]
 license = "MIT"
